@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理使用者</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/admin">返回管理員後台</a>
+            <button class="btn btn-outline-danger" id="btn-admin-logout">登出</button>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <div id="admin-status-message" role="alert"></div>
+
+        <h1 class="h3 mb-3">管理使用者: <span id="detail-user-name">...</span></h1>
+
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card mb-4">
+                    <div class="card-header"><h5 class="mb-0">更新使用者資料</h5></div>
+                    <div class="card-body">
+                        <input type="hidden" id="detail-user-id">
+                        <div class="mb-3">
+                            <label class="form-label">Email:</label>
+                            <input type="email" class="form-control" id="detail-email">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">角色:</label>
+                            <select class="form-select" id="detail-role">
+                                <option value="customer">customer</option>
+                                <option value="admin">admin</option>
+                            </select>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="detail-is-active">
+                            <label class="form-check-label" for="detail-is-active">帳號啟用中</label>
+                        </div>
+                        <button class="btn btn-primary" id="btn-update-user">儲存變更</button>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header"><h5 class="mb-0">安全操作</h5></div>
+                    <div class="card-body">
+                        <button class="btn btn-warning" id="btn-reset-password">重設密碼 (並Email通知)</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h5 class="mb-0">手動帳務調整</h5></div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">幣別:</label>
+                            <select class="form-select" id="adj-currency"></select>
+                        </div>
+                         <div class="mb-3">
+                            <label class="form-label">金額:</label>
+                            <input type="number" class="form-control" id="adj-amount" placeholder="正數=存入, 負數=提出">
+                        </div>
+                         <div class="mb-3">
+                            <label class="form-label">備註 (必填):</label>
+                            <input type="text" class="form-control" id="adj-note" value="管理員手動調整">
+                        </div>
+                        <button class="btn btn-danger" id="btn-manual-adjust">執行調整</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header"><h5 class="mb-0">錢包餘額</h5></div>
+                    <ul class="list-group list-group-flush" id="detail-wallets-list">
+                        </ul>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h5 class="mb-0">交易紀錄</h5></div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                             <label for="admin-tx-month-filter" class="form-label small">篩選月份 (留空=全部):</label>
+                            <input type="month" class="form-control" id="admin-tx-month-filter" style="max-width: 200px;">
+                        </div>
+                    
+                        <div style="max-height: 500px; overflow-y: auto;">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr><th>日期</th><th>類型</th><th>幣別</th><th>金額</th><th>備註</th></tr>
+                                </thead>
+                                <tbody id="detail-transactions-list">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/admin.js"></script>
+</body>
+</html>

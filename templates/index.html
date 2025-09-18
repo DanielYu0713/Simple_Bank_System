@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>銀行系統儀表板</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/7.2.1/css/flag-icon.min.css" integrity="sha512-cjSgoZlKCCIvMevT2QdeFPinSROMKqLUpUpG0G+VVkHZwG+bMw2swG2+BzzX/MqunAaM3YGlVsLNlrS/S/iZgA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background-color: #f0f2f5; }
+        .container-xl { max-width: 1200px; }
+        .sticky-top { top: 20px; }
+        .nav-pills .nav-link { text-align: left; padding: 12px 15px; color: #555; font-weight: 500; }
+        .nav-pills .nav-link.active { background-color: #0d6efd; color: white; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .nav-pills .nav-link i { margin-right: 10px; width: 20px; text-align: center; }
+        .card { border: none; border-radius: 0.75rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .wallet-balance { font-size: 1.5rem; font-weight: 600; }
+        .wallet-currency { font-size: 0.9rem; font-weight: 500; color: #6c757d; }
+        
+        /* (*** (新) 預算條 ***) */
+        .budget-bar-container { background-color: #e9ecef; border-radius: 0.25rem; overflow: hidden; }
+        .budget-bar { height: 20px; background-color: #0d6efd; transition: width 0.5s ease; }
+        .budget-bar.over-budget { background-color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container-xl my-4 my-lg-5">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0">銀行系統儀表板</h1>
+            <div>
+                <a href="/admin" id="admin-panel-link" class="btn btn-warning btn-sm me-2" style="display: none;">
+                    <i class="bi bi-shield-lock-fill"></i> 管理員後台
+                </a>
+                <span id="welcome-message" class="me-3 fs-5">載入中...</span>
+                <button id="btn-logout" class="btn btn-outline-danger btn-sm">登出</button>
+            </div>
+        </div>
+        
+        <div id="status-message" role="alert"></div>
+
+        <div class="row g-4">
+            
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <img src="/static/img/banner.png" class="card-img-top" alt="Banner" style="max-height: 250px; object-fit: cover; border-radius: 0.75rem 0.75rem 0 0;">
+                </div>
+
+                <div class="card">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-start">
+                            
+                            <div class="nav flex-column nav-pills me-4" id="v-pills-tab" role="tablist" aria-orientation="vertical" style="min-width: 180px;">
+                                <button class="nav-link" id="cash-flow-tab" data-bs-toggle="pill" data-bs-target="#cash-flow-pane" type="button" role="tab"><i class="bi bi-graph-up"></i>收支總覽</button>
+                                
+                                <button class="nav-link" id="budget-tab" data-bs-toggle="pill" data-bs-target="#budget-pane" type="button" role="tab"><i class="bi bi-piggy-bank"></i>預算管理</button>
+                                
+                                <button class="nav-link" id="exchange-tab" data-bs-toggle="pill" data-bs-target="#exchange-pane" type="button" role="tab"><i class="bi bi-currency-exchange"></i>外匯看板</button>
+                                <button class="nav-link" id="exchange-op-tab" data-bs-toggle="pill" data-bs-target="#exchange-op-pane" type="button" role="tab"><i class="bi bi-bank"></i>執行換匯</button>
+                                
+                                <button class="nav-link active" id="deposit-tab" data-bs-toggle="pill" data-bs-target="#deposit-pane" type="button" role="tab"><i class="bi bi-box-arrow-in-down"></i>存款</button>
+                                <button class="nav-link" id="withdraw-tab" data-bs-toggle="pill" data-bs-target="#withdraw-pane" type="button" role="tab"><i class="bi bi-box-arrow-up"></i>提款</button>
+                                <button class="nav-link" id="transfer-tab" data-bs-toggle="pill" data-bs-target="#transfer-pane" type="button" role="tab"><i class="bi bi-arrow-left-right"></i>轉帳</button>
+                                <button class="nav-link" id="history-tab" data-bs-toggle="pill" data-bs-target="#history-pane" type="button" role="tab"><i class="bi bi-clock-history"></i>交易紀錄</button>
+                                <button class="nav-link" id="profile-tab" data-bs-toggle="pill" data-bs-target="#profile-pane" type="button" role="tab"><i class="bi bi-gear-fill"></i>個人設定</button>
+                            </div>
+
+                            <div class="tab-content flex-grow-1" id="v-pills-tabContent">
+                                
+                                <div class="tab-pane fade" id="cash-flow-pane" role="tabpanel">
+                                    <h2 class="h5 mb-3">收支總覽 (依金額)</h2>
+                                    
+                                    <div class="row g-3 align-items-end mb-3">
+                                        <div class="col-md-4">
+                                            <label for="cash-flow-month" class="form-label">選擇月份:</label>
+                                            <input type="month" class="form-control" id="cash-flow-month">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="cash-flow-currency" class="form-label">選擇錢包:</label>
+                                            <select class="form-select" id="cash-flow-currency"></select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <button id="btn-analyze-cash-flow" class="btn btn-primary w-100">開始分析</button>
+                                        </div>
+                                    </div>
+
+                                    <div id="cash-flow-loading" style="display: none;">分析中...</div>
+                                    
+                                    <div id="cash-flow-charts-area" style="display: none;">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h3 class="h6 text-center">總收入 vs 總支出</h3>
+                                                <div style="max-width: 300px; max-height: 300px; margin: auto;">
+                                                    <canvas id="cash-flow-total-chart"></canvas>
+                                                </div>
+                                                <div id="cash-flow-total-summary" class="text-center mt-2"></div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h3 class="h6 text-center">收入來源</h3>
+                                                <div style="max-width: 300px; max-height: 300px; margin: auto;">
+                                                    <canvas id="cash-flow-income-sources-chart"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <hr class="my-4">
+
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <h3 class="h6 text-center">支出來源 (含 AI 分析)</h3>
+                                                <div style="max-width: 300px; max-height: 300px; margin: auto;">
+                                                    <canvas id="cash-flow-spend-sources-chart"></canvas>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h3 class="h6 text-center">財務建議</h3>
+                                                <div id="cash-flow-suggestion" class="alert alert-info h-100" style="display: none;"></div>
+                                            </div>
+                                        </div>
+
+                                        <hr class="my-4">
+
+                                        <div class="row mt-3">
+                                            <div class="col-md-12">
+                                                <h3 class="h6 text-center">每日流量曲線</h3>
+                                                <div style="max-height: 300px;">
+                                                    <canvas id="cash-flow-curve-chart"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row mt-4">
+                                            <div class="col-md-12">
+                                                <h3 class="h6 text-center">累積流量曲線</h3>
+                                                <div style="max-height: 300px;">
+                                                    <canvas id="cash-flow-cumulative-chart"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="tab-pane fade" id="budget-pane" role="tabpanel">
+                                    <h2 class="h5 mb-3">預算管理</h2>
+                                    <div class="row g-3 align-items-end mb-3">
+                                        <div class="col-md-6">
+                                            <label for="budget-month" class="form-label">選擇月份:</label>
+                                            <input type="month" class="form-control" id="budget-month">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="budget-currency" class="form-label">選擇錢包:</label>
+                                            <select class="form-select" id="budget-currency"></select>
+                                        </div>
+                                    </div>
+                                    <div id="budget-loading" style="display: none;">載入中...</div>
+                                    <div id="budget-area" style="display: none;">
+                                        <div class="row">
+                                            <div class="col-lg-7">
+                                                <h3 class="h6">預算設定 (支出類別)</h3>
+                                                <div id="budget-settings-list" class="mb-3">
+                                                    </div>
+                                                <button class="btn btn-primary" id="btn-save-budgets">儲存預算</button>
+                                            </div>
+                                            <div class="col-lg-5">
+                                                <h3 class="h6">本月支出 vs 預算</h3>
+                                                <canvas id="budget-chart"></canvas>
+                                                <div id="budget-summary-bars" class="mt-3">
+                                                    </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div class="tab-pane fade" id="exchange-pane" role="tabpanel">
+                                    <h2 class="h5 mb-3">即時外匯看板 (基準: TWD)</h2>
+                                    <p class="text-muted">1 元新台幣 (TWD) 可兌換：</p>
+                                    <div id="exchange-loading" class="text-center" style="display: none;"><div class="spinner-border text-primary" role="status"></div></div>
+                                    <ul class="list-group" id="exchange-rate-list"></ul>
+                                </div>
+                                
+                                <div class="tab-pane fade" id="exchange-op-pane" role="tabpanel">
+                                    <h2 class="h5 mb-3">執行換匯</h2>
+                                    <div class="mb-3">
+                                        <label for="exchange-from-currency" class="form-label">從 (您的錢包):</label>
+                                        <select class="form-select" id="exchange-from-currency"></select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="exchange-amount" class="form-label">兌換金額:</label>
+                                        <input type="number" class="form-control" id="exchange-amount" placeholder="要換出的金額">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="exchange-to-currency" class="form-label">換成 (目標幣別):</label>
+                                        <select class="form-select" id="exchange-to-currency"></select>
+                                    </div>
+                                    <div id="exchange-quote-result" class="alert alert-info" style="display: none;"></div>
+                                    <div class="mb-3">
+                                        <label for="exchange-date" class="form-label">日期 (YYYY-MM-DD, 留空=今日):</label>
+                                        <input type="text" class="form-control" id="exchange-date">
+                                    </div>
+                                    <button id="btn-exchange" class="btn btn-primary w-100">確認換匯</button>
+                                </div>
+
+                                <div class="tab-pane fade show active" id="deposit-pane" role="tabpanel">
+                                    <h2 class="h5 mb-3">存款</h2>
+                                    <div class="mb-3">
+                                        <label for="deposit-currency" class="form-label">幣別:</label>
+                                        <select class="form-select" id="deposit-currency"></select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="deposit-amount" class="form-label">存款金額:</label>
+                                        <input type="number" class="form-control" id="deposit-amount" placeholder="必須 > 0">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="deposit-date" class="form-label">日期 (YYYY-MM-DD, 留空=今日):</label>
+                                        <input type="text" class="form-control" id="deposit-date">
+                                    </div>
+                                    <button id="btn-deposit" class="btn btn-success w-100">確認存入</button>
+                                </div>
+
+                                <div class="tab-pane fade" id="withdraw-pane" role="tabpanel">
+                                    <h2 class="h5 mb-3">提款</h2>
+                                    <div class="mb-3">
+                                        <label for="withdraw-currency" class="form-label">幣別 (您擁有的錢包):</label>
+                                        <select class="form-select" id="withdraw-currency"></select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="withdraw-amount" class="form-label">提款金額:</label>
+                                        <input type="number" class="form-control" id="withdraw-amount" placeholder="必須 > 0">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="withdraw-note" class="form-label">備註 (選填，用於 AI 分析):</label>
+                                        <input type="text" class="form-control" id="withdraw-note" placeholder="例如: 晚餐、繳電費">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="withdraw-date" class="form-label">日期 (YYYY-MM-DD, 留空=今日):</label>
+                                        <input type="text" class="form-control" id="withdraw-date">
+                                    </div>
+                                    <button id="btn-withdraw" class="btn btn-danger w-100">確認提款</button>
+                                </div>
+                                
+                                <div class="tab-pane fade" id="transfer-pane" role="tabpanel">
+                                    <h2 class="h5 mb-3">轉帳 (僅限同幣別)</h2>
+                                    <div class="mb-3">
+                                        <label for="transfer-currency" class="form-label">幣別 (您擁有的錢包):</label>
+                                        <select class="form-select" id="transfer-currency"></select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="transfer-to-name" class="form-label">轉入帳戶 (姓名):</label>
+                                        <input type="text" class="form-control" id="transfer-to-name">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="transfer-amount" class="form-label">轉帳金額:</label>
+                                        <input type="number" class="form-control" id="transfer-amount" placeholder="必須 > 0">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="transfer-note" class="form-label">備註 (選填):</label>
+                                        <input type="text" class="form-control" id="transfer-note" placeholder="例如: 房租">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="transfer-date" class="form-label">日期 (YYYY-MM-DD, 留空=今日):</label>
+                                        <input type="text" class="form-control" id="transfer-date">
+                                    </div>
+                                    <button id="btn-transfer" class="btn btn-warning w-100">確認轉帳</button>
+                                </div>
+                                
+                                <div class="tab-pane fade" id="history-pane" role="tabpanel">
+                                    <h2 class="h5 mb-3">我的交易紀錄</h2>
+                                    <button id="btn-refresh-history" class="btn btn-secondary btn-sm mb-3">重新整理</button>
+                                    <button id="btn-export-csv" class="btn btn-info btn-sm mb-3 ms-2">匯出 CSV</button>
+                                    <div class="mb-3">
+                                        <label for="history-month" class="form-label">篩選月份:</label>
+                                        <input type="month" class="form-control" id="history-month" style="max-width: 200px;">
+                                    </div>
+                                    <div style="max-height: 500px; overflow-y: auto;">
+                                        <table class="table table-striped table-hover">
+                                            <thead> <tr> <th>日期</th> <th>類型</th> <th>幣別</th> <th>金額</th> <th>錢包結餘</th> <th>備註</th> <th>匯率</th> </tr> </thead>
+                                            <tbody id="history-table-body"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div class="tab-pane fade" id="profile-pane" role="tabpanel">
+                                    <h2 class="h5 mb-3">個人設定</h2>
+                                    <div class="mb-3">
+                                        <label for="profile-email" class="form-label">Email (用於交易通知):</label>
+                                        <input type="email" class="form-control" id="profile-email" placeholder="user@example.com">
+                                    </div>
+                                    <button id="btn-save-profile" class="btn btn-primary">儲存 Email</button>
+                                    
+                                    <hr class="my-4">
+                                    
+                                    <h2 class="h5 mb-3">變更密碼</h2>
+                                    <div class="mb-3">
+                                        <label for="old-password" class="form-label">舊密碼:</label>
+                                        <input type="password" class="form-control" id="old-password">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="new-password" class="form-label">新密碼:</label>
+                                        <input type="password" class="form-control" id="new-password">
+                                    </div>
+                                    <button id="btn-change-password" class="btn btn-warning">確認變更密碼</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card shadow-sm mb-4 sticky-top">
+                    <div class="card-header bg-white border-0 pt-3">
+                        <h2 class="h5 mb-0">個人資訊</h2>
+                    </div>
+                    <ul class="list-group list-group-flush p-3">
+                         <li class="list-group-item d-flex justify-content-between">
+                            <strong>帳號:</strong> <span id="info-name" class="text-muted">...</span>
+                         </li>
+                         <li class="list-group-item d-flex justify-content-between">
+                            <strong>角色:</strong> <span id="info-role" class="text-muted">...</span>
+                         </li>
+                         <li class="list-group-item d-flex justify-content-between">
+                            <strong>總資產 (約TWD):</strong> 
+                            <span id="info-total-assets" class="text-primary fw-bold fs-5">...</span>
+                         </li>
+                         <li class="list-group-item">
+                            <div class="text-muted mb-2">我的錢包:</div>
+                            <div id="info-wallets-list">
+                                <span class="text-muted">載入中...</span>
+                            </div>
+                         </li>
+                    </ul>
+                </div>
+                
+                <div class="card shadow-sm" id="analysis-summary-area"> 
+                    <div class="card-header bg-white">
+                        <h2 class="h5 mb-0">財務分析 (依次數)</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="analysis-summary-currency" class="form-label">選擇錢包:</label>
+                            <select class="form-select" id="analysis-summary-currency"></select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="analysis-summary-month" class="form-label">選擇月份:</label>
+                            <input type="month" class="form-control" id="analysis-summary-month">
+                        </div>
+                        <button id="btn-analyze-summary" class="btn btn-primary w-100">分析</button>
+                        
+                        <div id="analysis-summary-loading" class="text-center mt-3" style="display: none;">
+                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                            <span class="ms-2">分析中...</span>
+                        </div>
+                        
+                        <div id="analysis-summary-results" class="mt-3">
+                            </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mt-4" id="customer-list-area" style="display: none;"> 
+                    <div class="card-header bg-white">
+                        <h2 class="h5 mb-0">(管理員) 客戶總表</h2>
+                    </div>
+                    <ul id="customer-list" class="list-group list-group-flush" style="max-height: 500px; overflow-y: auto;"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+</html>
