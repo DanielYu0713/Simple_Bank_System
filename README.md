@@ -88,7 +88,7 @@ pip install -r requirements.txt
 
 #### 5. **設定環境變數**
 專案使用 `.env` 檔案來管理敏感資訊。請複製或重新命名 `.env.example` (如果有的話) 為 `.env`，並填入必要的 API 金鑰 (例如 AI 服務的金鑰)。
-若您想持續用匯率相關的內容，請至https://www.exchangerate-api.com/申請API。另外，此系統使用的HuggingFACE，您也可以換成其他OpenAI API，以下為基礎格式 :
+若您想持續用匯率相關的內容，請至 https://www.exchangerate-api.com/ 申請API。另外，此系統使用的HuggingFACE，您也可以換成其他OpenAI API，以下為基礎格式 :
 ```bash
 HF_API_TOKEN="YOUR_OPEN_API_KEY"
 EXCHANGE_RATE_API_KEY="YOUR_EXCHANGE_RATE_API_KEY"
