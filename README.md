@@ -39,20 +39,28 @@
 
 ```
 .
-├── static/              # 靜態檔案 (JS, CSS, 圖片)
-│   ├── css/             # CSS 樣式表
-│   └── img/             # 圖片資源
-├── templates/           # HTML 網頁模板
-├── .env                 # 環境變數檔案 (範本)
-├── .gitignore           # Git 忽略清單
-├── app.py               # Flask 主應用程式，定義所有路由 (Routes)
-├── logic.py             # 核心商業邏輯 (使用者、交易、分析等)
-├── database.py          # 資料庫連線與初始化
-├── schema.sql           # 資料庫結構 (DDL)
-├── ai_services.py       # AI 分類服務
-├── exchange_rate.py     # 匯率 API 服務
-├── requirements.txt     # Python 依賴套件
-└── README.md            # 本說明檔案
+├── static/                    # 網頁的動態行為、圖片們
+│   ├── css/                   # CSS 樣式表
+│   └── img/                   # 圖片資源
+│   └──admin.js                # 管理員後台的專用 JS
+│   └──app.js                  # 使用者儀表板 JS
+│   └──login.js                # 登入/註冊 JS
+├── templates/                 # HTML 網頁模板
+│   ├── login.html             # 靜態表單
+│   └── register.html          # 同上
+│   └── index.html             # 使用者的儀表板
+│   └── admin.html             # 管理員主儀表板，用於顯示全站統計和使用者列表
+│   └── admin_user_detail.html # 管理員編輯單一使用者的頁面，包含資料修改、手動調帳、以及可依月份篩選的交易紀錄表
+├── .env                       # 環境變數檔案 (範本)
+├── .gitignore                 # Git 忽略清單
+├── app.py                     # Flask 主應用程式，定義所有路由 (Routes)
+├── logic.py                   # 核心商業邏輯 (使用者、交易、分析等)
+├── database.py                # 資料庫連線與初始化
+├── schema.sql                 # 資料庫結構 (DDL)
+├── ai_services.py             # AI 分類服務
+├── exchange_rate.py           # 匯率 API 服務
+├── requirements.txt           # Python 依賴套件
+└── README.md                  # 本說明檔案
 ```
 
 ## 安裝與啟動 (Installation & Setup)
